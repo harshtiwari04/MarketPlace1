@@ -7,7 +7,7 @@ import { logger } from './utils/logger';
 
 const bootstrap = async (): Promise<void> => {
   await connectDB();
-  await verifyMailer(); // non-fatal: logs loudly on bad SMTP credentials
+  await verifyMailer(); // non-fatal: logs loudly on bad SendGrid credentials
 
   const server = http.createServer(app);
   // Render's proxy keeps upstream connections alive for 60s; ours must be longer to avoid 502s.
@@ -21,7 +21,7 @@ const bootstrap = async (): Promise<void> => {
       trustProxy: env.TRUST_PROXY,
       cookieSameSite: env.COOKIE_SAME_SITE,
       origins: env.CLIENT_URL,
-      email: env.EMAIL_ENABLED ? `${env.SMTP_HOST}:${env.SMTP_PORT}` : 'disabled',
+            email: env.EMAIL_ENABLED ? `sendgrid:${env.EMAIL_FROM}` : 'disabled',
     });
   });
 
