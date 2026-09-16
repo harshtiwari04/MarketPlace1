@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /orders
+Disallow: /seller
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://YOUR-STOREFRONT-DOMAIN.example/sitemap.xml

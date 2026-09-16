@@ -1,0 +1,36 @@
+# Render Blueprint — storefront as a static site.
+# The /api/* and /sitemap.xml rewrites proxy to the API service so cookies stay FIRST-PARTY. This is
+# the only setup that works in every browser: two *.onrender.com subdomains are cross-site (the
+# domain is on the Public Suffix List) and Safari/Brave block the resulting third-party cookie.
+# Pair with backend env COOKIE_SAME_SITE=lax and TRUST_PROXY=2. Replace marketplace-api below with
+# your API service name.
+services:
+  - type: web
+    name: marketplace-web
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: /api/v1
+      - key: VITE_APP_NAME
+        value: Marketplace
+      - key: VITE_RAZORPAY_KEY_ID
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://marketplace-api.onrender.com/api/*
+      - type: rewrite
+        source: /sitemap.xml
+        destination: https://marketplace-api.onrender.com/sitemap.xml
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
