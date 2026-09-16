@@ -1,0 +1,36 @@
+# Local full-stack dev/staging. Not for production hosting — see README "Deployment".
+#   docker compose up --build
+# API → http://localhost:5000, Mongo (replica set rs0) → mongodb://localhost:27017
+services:
+  mongo:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports: ["27017:27017"]
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      # Initiates the single-node replica set on first boot, then reports healthy once it's PRIMARY.
+      test: >
+        mongosh --quiet --eval "
+          try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0', members:[{_id:0, host:'mongo:27017'}]}) }
+          rs.isMaster().ismaster ? quit(0) : quit(1)
+        "
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  api:
+    build: .
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports: ["5000:5000"]
+    env_file: .env          # your local .env — never committed
+    environment:
+      NODE_ENV: production  # exercise the real build; use `npm run dev` outside compose for hot reload
+      PORT: "5000"
+      MONGO_URI: mongodb://mongo:27017/marketplace?replicaSet=rs0
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

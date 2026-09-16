@@ -1,0 +1,85 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploys the API as a Docker web service. Pair with the frontend repo's render.yaml (static site).
+#
+# Secrets marked `sync: false` are set once in the Render dashboard and never live in git.
+# MongoDB: use an Atlas M0 (free) cluster — it is a replica set, which checkout transactions require.
+services:
+  - type: web
+    name: marketplace-api
+    runtime: docker
+    plan: starter            # free tier sleeps after 15 min idle; fine for staging, not for live orders/webhooks
+    region: singapore        # closest Render region to India; change if your users are elsewhere
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+      - key: CLIENT_URL
+        value: https://marketplace-web.onrender.com   # exact origin(s), comma-separated, no trailing slash
+      # 2 when the storefront's render.yaml rewrites /api/* to this service (browser → static edge → API).
+      # 1 if the SPA calls this service's URL directly (cross-site cookies; see docs/DEPLOYMENT.md).
+      - key: TRUST_PROXY
+        value: "2"
+      # "lax" for the same-origin rewrite setup (recommended). "none" only for direct cross-site calls.
+      - key: COOKIE_SAME_SITE
+        value: lax
+      - key: MONGO_MAX_POOL_SIZE
+        value: "50"
+      - key: MONGO_MIN_POOL_SIZE
+        value: "5"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: OTP_HASH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_TTL_DAYS
+        value: "30"
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_API_VERSION
+        value: v20.0
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: marketplace/products
+      - key: WHATSAPP_OTP_TEMPLATE
+        value: otp_verification
+      - key: WHATSAPP_ORDER_TEMPLATE
+        value: order_confirmation
+      - key: WHATSAPP_STATUS_TEMPLATE
+        value: order_status_update
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        value: "Marketplace <you@gmail.com>"
+      - key: SENTRY_DSN
+        sync: false
