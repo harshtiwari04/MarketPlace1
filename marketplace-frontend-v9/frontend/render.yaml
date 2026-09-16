@@ -1,9 +1,10 @@
 # Render Blueprint — storefront as a static site.
-# The /api/* and /sitemap.xml rewrites proxy to the API service so cookies stay FIRST-PARTY. This is
-# the only setup that works in every browser: two *.onrender.com subdomains are cross-site (the
-# domain is on the Public Suffix List) and Safari/Brave block the resulting third-party cookie.
-# Pair with backend env COOKIE_SAME_SITE=lax and TRUST_PROXY=2. Replace marketplace-api below with
-# your API service name.
+# The /api/* and /sitemap.xml rewrites proxy to the API service (marketplace1-9ifw) so cookies
+# stay FIRST-PARTY. This is the only setup that works in every browser: two *.onrender.com
+# subdomains are cross-site (the domain is on the Public Suffix List) and Safari/Brave block the
+# resulting third-party cookie.
+# Paired with backend env COOKIE_SAME_SITE=lax and TRUST_PROXY=2 — set those on the
+# marketplace1-9ifw service in the Render dashboard.
 services:
   - type: web
     name: marketplace-web
@@ -23,10 +24,10 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://marketplace-api.onrender.com/api/*
+        destination: https://marketplace1-9ifw.onrender.com/api/*
       - type: rewrite
         source: /sitemap.xml
-        destination: https://marketplace-api.onrender.com/sitemap.xml
+        destination: https://marketplace1-9ifw.onrender.com/sitemap.xml
       - type: rewrite
         source: /*
         destination: /index.html
